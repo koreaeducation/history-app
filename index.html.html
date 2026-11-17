@@ -1,0 +1,751 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>html{color-scheme:light}body{margin:0}</style>
+<title>중국사 AI 복습 노트</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Layout: 청화백자(청색·백색) 카드 노트. 위에 시대 연표(진도 막대), 아래에 카드·퀴즈·AI 선생님·내 카드 탭. 외부 글꼴·외부 요청 없음. */
+:root{
+  --bg:#f3f6fb; --surface:#ffffff; --ink:#14213d; --muted:#56637f; --line:#d3ddee;
+  --cobalt:#1d3f9e; --on-cobalt:#ffffff; --cobalt-soft:#e5ebfa;
+  --good:#1b7556; --good-soft:#dff2ea; --bad:#ad3527; --bad-soft:#fae8e4;
+  --amber:#7a5200; --amber-soft:#fbf0d9;
+  --f-display:'Nanum Myeongjo','Noto Serif KR','AppleMyungjo','Batang',serif;
+  --f-body:'Apple SD Gothic Neo','Malgun Gothic','Noto Sans KR','Nanum Gothic',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0c1222; --surface:#141d33; --ink:#e8edf8; --muted:#9aa7c4; --line:#2a3757;
+    --cobalt:#8eaaff; --on-cobalt:#0c1222; --cobalt-soft:#1b2848;
+    --good:#5fd1a2; --good-soft:#12302a; --bad:#ff9482; --bad-soft:#3a1c19;
+    --amber:#f0c36b; --amber-soft:#3a2f14; color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0c1222; --surface:#141d33; --ink:#e8edf8; --muted:#9aa7c4; --line:#2a3757;
+  --cobalt:#8eaaff; --on-cobalt:#0c1222; --cobalt-soft:#1b2848;
+  --good:#5fd1a2; --good-soft:#12302a; --bad:#ff9482; --bad-soft:#3a1c19;
+  --amber:#f0c36b; --amber-soft:#3a2f14; color-scheme:dark;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.6;
+  padding-block:20px 48px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:720px;margin:0 auto;display:flex;flex-direction:column;gap:18px}
+header .eyebrow{font-size:12px;letter-spacing:.08em;color:var(--muted)}
+h1{font-family:var(--f-display);font-weight:800;font-size:clamp(26px,6vw,34px);line-height:1.25;margin:4px 0 0;text-wrap:balance;color:var(--cobalt)}
+header p{margin:6px 0 0;color:var(--muted)}
+button{font:inherit;color:inherit;cursor:pointer}
+a:focus-visible,button:focus-visible,[role=button]:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible,[tabindex="-1"]:focus-visible{outline:3px solid var(--cobalt);outline-offset:2px}
+.msg{background:var(--amber-soft);color:var(--amber);border:1px solid var(--amber);border-radius:10px;padding:10px 14px}
+.eras{display:grid;grid-template-columns:repeat(auto-fit,minmax(104px,1fr));gap:8px}
+.era{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:8px 10px;text-align:left;display:flex;flex-direction:column;gap:2px;min-width:0}
+.era .yr{font-family:var(--f-display);font-weight:800;font-size:18px;color:var(--cobalt);font-variant-numeric:tabular-nums;line-height:1.2}
+.era .nm{font-size:13px;line-height:1.35}
+.era .ct{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{display:block;height:4px;border-radius:2px;background:var(--cobalt-soft);margin-top:4px;overflow:hidden}
+.bar i{display:block;height:100%;background:var(--cobalt)}
+.era[aria-pressed=true]{background:var(--cobalt);border-color:var(--cobalt)}
+.era[aria-pressed=true] .yr,.era[aria-pressed=true] .nm,.era[aria-pressed=true] .ct{color:var(--on-cobalt)}
+.era[aria-pressed=true] .bar{background:color-mix(in srgb,var(--on-cobalt) 30%,transparent)}
+.era[aria-pressed=true] .bar i{background:var(--on-cobalt)}
+.tabs{display:flex;gap:4px;border-bottom:1px solid var(--line);overflow-x:auto}
+.tab{background:none;border:0;border-bottom:3px solid transparent;padding:10px 14px;font-weight:500;color:var(--muted);margin-bottom:-1px;white-space:nowrap}
+.tab[aria-selected=true]{color:var(--cobalt);border-bottom-color:var(--cobalt);font-weight:700}
+.panel{display:flex;flex-direction:column;gap:14px;min-width:0}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end}
+.grow{flex:1 1 180px;min-width:0}
+.btn{background:var(--surface);border:1px solid var(--line);border-radius:8px;padding:9px 14px;font-weight:500}
+.btn:hover{border-color:var(--cobalt)}
+.btn.primary{background:var(--cobalt);color:var(--on-cobalt);border-color:var(--cobalt);font-weight:700}
+.btn[disabled]{opacity:.5;cursor:not-allowed}
+.btn.good{border-color:var(--good);color:var(--good)}
+.btn.warn{border-color:var(--bad);color:var(--bad)}
+a.btn{display:inline-block;text-decoration:none;color:inherit}
+a.btn.primary{color:var(--on-cobalt)}
+.linkgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px}
+a.linkbtn{display:flex;flex-direction:column;gap:2px;text-align:left;min-width:0}
+.linkbtn .ln{font-weight:700;font-size:16px}
+.linkbtn .lh{font-size:12px;opacity:.85;overflow-wrap:anywhere}
+.mono{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:13px}
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.stat{background:var(--cobalt-soft);border-radius:10px;padding:10px 12px;min-width:0}
+.sv{font-family:var(--f-display);font-weight:800;font-size:22px;color:var(--cobalt);font-variant-numeric:tabular-nums;line-height:1.3}
+.card{background:var(--surface);border:1px solid var(--cobalt);border-radius:12px;padding:6px}
+.card-in{border:1px solid var(--line);border-radius:8px;min-height:230px;padding:22px 20px;display:flex;flex-direction:column;justify-content:center;gap:10px;text-align:center;cursor:pointer}
+.card-in.static{min-height:140px;cursor:default}
+.side{font-size:12px;letter-spacing:.08em;color:var(--muted)}
+.q{font-family:var(--f-display);font-weight:600;font-size:clamp(18px,4.6vw,22px);line-height:1.55;text-wrap:balance;overflow-wrap:anywhere}
+.ans{font-family:var(--f-display);font-weight:800;font-size:clamp(22px,5.6vw,28px);color:var(--cobalt);line-height:1.4;overflow-wrap:anywhere}
+.note{color:var(--muted);font-size:14px;overflow-wrap:anywhere}
+.tag{display:inline-block;font-size:11px;border:1px solid var(--cobalt);color:var(--cobalt);border-radius:999px;padding:0 8px;align-self:center}
+.meta{display:flex;justify-content:space-between;color:var(--muted);font-size:13px;font-variant-numeric:tabular-nums}
+.opts{display:grid;gap:8px}
+.opt{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:12px 14px;text-align:left;overflow-wrap:anywhere}
+.opt:hover:not([disabled]){border-color:var(--cobalt)}
+.opt.right{background:var(--good-soft);border-color:var(--good);color:var(--good);font-weight:700}
+.opt.wrong{background:var(--bad-soft);border-color:var(--bad);color:var(--bad)}
+.box{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:14px;overflow-wrap:anywhere}
+.box.soft{background:var(--cobalt-soft);border-color:transparent}
+.box p{margin:6px 0 0}
+.out{white-space:pre-wrap;min-height:1.6em}
+.chip{display:inline-block;border-radius:999px;padding:1px 10px;font-weight:700;font-size:13px;border:1px solid}
+.chip.good{color:var(--good);background:var(--good-soft);border-color:var(--good)}
+.chip.half{color:var(--amber);background:var(--amber-soft);border-color:var(--amber)}
+.chip.bad{color:var(--bad);background:var(--bad-soft);border-color:var(--bad)}
+label{font-size:13px;color:var(--muted);display:block;margin-bottom:4px}
+input[type=text],textarea,select{width:100%;font:inherit;color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 10px}
+textarea{min-height:84px;resize:vertical}
+form{display:grid;gap:10px}
+.mine{display:flex;gap:8px;justify-content:space-between;align-items:center;border-top:1px solid var(--line);padding:8px 0;min-width:0}
+.mine span{min-width:0;overflow-wrap:anywhere}
+.chips{display:flex;gap:6px;flex-wrap:wrap}
+.chips .btn{font-size:13px;padding:6px 10px}
+h2{font-family:var(--f-display);font-size:19px;margin:0}
+.big{font-family:var(--f-display);font-weight:800;font-size:34px;color:var(--cobalt);font-variant-numeric:tabular-nums}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">중2 세계사 · 몽골 제국에서 중화인민공화국까지</div>
+    <h1>중국사 AI 복습 노트</h1>
+    <p>시대를 고르고, 카드로 외우고, 퀴즈로 확인하고, AI 선생님 탭에서 궁금한 것을 물어보세요. 학습 기록은 이 기기에만 저장돼요.</p>
+  </header>
+  <div id="msg" class="msg" role="status" hidden></div>
+  <nav class="eras" id="eras" aria-label="시대 선택"></nav>
+  <div class="tabs" role="tablist" id="tabs" aria-label="학습 방법"></div>
+  <main class="panel" id="main" role="tabpanel" tabindex="-1"></main>
+</div>
+
+<script>
+(function(){
+"use strict";
+
+/* ================= 기본 카드: [시대, 문제, 답, 설명] (활동지 2-2 ~ 2-8 범위) ================= */
+var BASE = [
+["won","13세기 초 몽골 부족을 통일한 테무친이 추대된 칭호는?","칭기즈 칸","1206년 몽골 제국이 세워졌어요. 한(汗)은 몽골·튀르크 지역에서 군주를 부르던 말이에요."],
+["won","칭기즈 칸 사후 왕위 계승 분쟁 등으로 몽골 제국이 나뉜 네 나라를 부르는 말은?","울루스","몽골어로 '많은 사람'이라는 뜻이고, 점차 부족·국가를 가리켰어요."],
+["won","쿠빌라이 칸이 수도로 삼은 곳과 바꾼 국호는?","대도(베이징), 원","1271년 원을 세웠고, 원을 중심으로 울루스들이 느슨하게 연합했어요."],
+["won","몽골인을 최고로 삼고 한인·남인을 차별한 원의 정책은?","몽골 제일주의","한인은 옛 금나라 지역, 남인은 옛 남송 지역의 한족이에요. 몽골 침입 때 남송의 저항이 가장 컸어요."],
+["won","몽골 제일주의에서 서역 출신으로 재정·행정을 맡아 우대받은 사람들은?","색목인",""],
+["won","몽골 제국이 도로를 따라 약 40km마다 설치해 사신에게 말과 숙소를 제공한 제도는?","역참제","지금의 고속도로 휴게소와 비슷해요. 마르코 폴로의 『동방견문록』에도 나와요."],
+["won","몽골 제국 시기 초원길·비단길·바닷길이 연결되어 형성된 교역권은?","유라시아·인도양 교역권","도로망을 마련하고 대운하를 정비했어요."],
+["won","원에서 17년간 머물며 『동방견문록』을 남긴 이탈리아 상인은?","마르코 폴로",""],
+["won","원이 쇠퇴하게 된 경제적 원인은?","과도한 세금 징수, 지폐 남발","왕위 계승 분쟁과 지배층의 사치·낭비로 재정도 나빠졌어요."],
+["won","원 말 농민 반란으로 원이 쇠퇴하는 계기가 된 사건은?","홍건적의 난","1368년 원은 주원장에게 북쪽으로 쫓겨났어요."],
+["ming","홍건적에서 두각을 나타내 1368년 명을 세운 농민 출신 인물은?","주원장(홍무제)","난징(금릉)을 수도로 삼았어요. 한족 왕조가 다시 중국을 지배했어요."],
+["ming","홍무제가 황제의 독재권을 강화하려고 폐지한 직책(국무총리 격)은?","재상",""],
+["ming","관리가 마을마다 찾아가지 않아도 농민이 스스로 세금을 걷고 마을 질서를 지키게 한, 홍무제의 농촌 자치·세금 징수 제도는?","이갑제","110호를 1리로 묶어 세금 징수와 치안을 맡겼어요."],
+["ming","토지 대장(어린도책)과 호적·조세 장부(부역황책)를 만든 명의 황제는?","홍무제(명 태조)","이를 통해 농촌 지배력이 강해졌어요."],
+["ming","홍무제가 유교 질서를 회복하려고 백성 교육용으로 반포한 여섯 가지 교훈은?","육유","몽골 풍습을 금지하고 학교 교육을 강화했어요."],
+["ming","베이징으로 천도하고 자금성을 지은 명의 황제는?","영락제",""],
+["ming","명 초(1405~1433) 동남아에서 아프리카 동부 해안까지 일곱 차례 항해한 환관은?","정화","바스쿠 다 가마보다 90년쯤 앞섰어요."],
+["ming","정화의 항해 결과 명이 여러 나라와 맺은 외교 관계는?","조공·책봉 관계","주변국이 사절단을 보내 예물을 바치면 중국이 군주를 왕으로 임명하는 방식이에요."],
+["ming","명 후기 북쪽의 몽골족과 남쪽의 왜구에게 시달린 재앙을 뜻하는 말은?","북로남왜",""],
+["ming","명이 조선에 군사를 지원해 재정이 더 나빠진 전쟁은?","임진왜란","백성에게 과중한 세금을 걷게 되었어요."],
+["ming","1644년 명을 멸망시킨 농민 반란의 지도자는?","이자성","이후 만주에서 성장한 청이 중국 전역을 장악했어요."],
+["qing","1616년 후금을 세운 청 태조는?","누르하치","여진족(만주족)이에요."],
+["qing","1636년 청과 조선 사이에 벌어진 전쟁은?","병자호란","청 태종 때 국호를 후금에서 청으로 바꿨어요."],
+["qing","소수의 만주족이 다수의 한족을 지배하려고 함께 쓴 두 정책은?","회유책(당근)과 강압책(채찍)","바로 다음 두 카드에서 구체적인 사례를 확인해요."],
+["qing","청의 강압책 사례는?","변발·호복 강요, 청 비판 서적 금지","한족의 중화사상도 탄압했어요."],
+["qing","청의 회유책 사례는?","과거제 실시, 만주족과 한족 함께 등용, 『사고전서』 편찬","한족 학자들을 동원한 대규모 편찬 사업이에요."],
+["qing","명·청 시대 지방에서 세금 징수와 치안 유지를 도운 지배 계층은?","신사","전·현직 관리인 신(紳)과 학생·졸업생 등 사(士)로 이루어졌어요."],
+["qing","명·청 시대에 사적인 해상 무역을 제한한 정책은?","해금 정책","유럽 상인이 차·비단·도자기를 원해 점차 완화되었어요."],
+["qing","해외 무역으로 중국에 대량 유입되어 화폐와 세금으로 쓰인 금속은?","은","명의 일조편법, 청의 지정은제로 세금도 은으로 냈어요."],
+["qing","18세기 중반 이후 청이 서양과의 무역을 허용한 유일한 항구와 무역 상인 조합은?","광저우, 공행",""],
+["qing","마테오 리치가 중국 지식인과 만든 세계 지도(1602)는?","곤여만국전도","중국 중심의 세계관에서 벗어나는 계기가 되었어요."],
+["qing","송·명·청 시대 학문의 흐름은?","성리학 → 양명학 → 고증학","성리학은 주희가 완성, 양명학은 앎과 행동의 일치를 강조, 고증학은 경전을 실증적으로 연구했어요."],
+["qing","명 시대에 인기를 끈 소설 세 편은?","삼국지연의, 서유기, 수호전","청 시대에는 『홍루몽』이 유행했고 베이징에서 경극이 생겼어요."],
+["qing","한족이 자신들을 세계 문명의 중심이라고 부르던 말은?","중화","조선은 명이 망한 뒤 스스로를 소중화라고 여겼어요."],
+["modern","영국이 차·비단·도자기 대금을 마련하려고 인도에서 청으로 밀수출한 물품은?","아편","아편 중독자가 늘고 은이 해외로 빠져나가 청의 재정이 나빠졌어요."],
+["modern","청이 아편을 몰수해 불태우도록 파견한 관리는?","임칙서",""],
+["modern","1차 아편 전쟁 후 1842년에 맺은 조약은?","난징 조약","공행 폐지, 5개 항구 개항, 홍콩 할양이 들어 있어요. 청이 외국과 맺은 최초의 근대적·불평등 조약이에요."],
+["modern","외국인이 머무는 나라의 법이 아니라 자기 나라 법만 적용받는 권리는?","치외법권","추가 조약에서 최혜국 대우도 인정했어요."],
+["modern","2차 아편 전쟁의 구실이 된 1856년 사건은?","애로호 사건","프랑스는 자국 선교사 피살 사건을 구실로 삼았어요."],
+["modern","2차 아편 전쟁 결과 베이징 조약(1860)으로 러시아가 얻은 땅은?","연해주","이 일로 조선과 러시아가 국경을 맞닿게 되었어요."],
+["modern","2차 아편 전쟁 결과 베이징 조약(1860)으로 영국과 프랑스가 중국에게 요구한 것은?","10개 항구 추가 개항, 외국 공사(외교관)의 베이징 주재 허용, 크리스트교 포교의 자유 및 여행의 자유, 막대한 배상금",""],
+["modern","홍수전이 배상제회를 바탕으로 1851년 일으킨 운동은?","태평천국 운동","멸만흥한을 내세우고 난징을 점령했어요. 토지 균등 분배, 남녀 평등, 전족 폐지를 추진했어요."],
+["modern","태평천국 운동을 진압한 한인 신사 출신 지도자는?","이홍장, 증국번","한인 의용군과 외국 군대가 함께 진압했어요."],
+["modern","양무운동의 구호 '중체서용'의 뜻은?","중국의 정신과 제도는 유지하고 서양 기술만 받아들이자","군수 공장과 북양 함대를 만들었지만 제도 개혁이 없어 한계가 있었어요."],
+["modern","양무운동이 실패했음을 보여 준 1894~1895년 전쟁은?","청·일 전쟁",""],
+["modern","캉유웨이 등이 메이지 유신을 모델로 입헌군주제를 추진한 1898년 운동은?","변법자강 운동","의회 설립과 서양식 교육을 주장했지만 보수파의 반발로 실패했어요."],
+["modern","'부청멸양'을 외치며 교회와 철도를 파괴한 단체(1899~1901)는?","의화단","8개국 연합군에게 진압되었고, 청은 막대한 배상금을 내고 외국 군대의 베이징 주둔을 허용했어요."],
+["modern","쑨원이 내세운 삼민주의 세 가지는?","민족, 민권, 민생","민족은 만주족 청을 몰아내기, 민권은 공화정, 민생은 토지 분배로 생활 안정이에요."],
+["modern","청 정부의 민간 철도 국유화에 반대해 일어난 봉기와 혁명군이 봉기한 도시는?","쓰촨 봉기, 우창","1911년 신해혁명이 시작되었어요."],
+["modern","1912년 중국 최초의 공화국 중화민국에서 임시 대총통이 된 인물은?","쑨원",""],
+["modern","청 황제를 퇴위시키고 대총통이 되었다가 제정 부활을 시도한 인물은?","위안스카이","실패 후 병사했고, 이후 각지에 군벌이 등장해 혼란이 이어졌어요."],
+["rep","1919년 5월 4일 베이징 학생들이 군벌 타도와 일본의 21개조 폐지를 외친 운동은?","5·4 운동","군벌 정부는 파리 강화 회의의 조약 조인을 거부했어요."],
+["rep","1차 세계대전 중 일본이 산둥 반도의 이권 등을 요구한 것은?","21개조 요구","위안스카이 정부가 수용했어요."],
+["rep","5·4 운동과 한국의 3·1 운동에 영향을 준 윌슨 대통령의 주장은?","민족 자결주의","하지만 승전국의 식민지에는 적용되지 않았어요."],
+["rep","신해혁명 이후 서양의 과학과 민주주의 수용을 강조한 운동은?","신문화 운동","잡지 『신청년』이 대표적이에요."],
+["rep","5·4 운동의 영향으로 출현·결성된 두 정당은?","중국 국민당, 중국 공산당",""],
+["rep","1924년 쑨원의 노력으로 국민당과 공산당이 손잡은 일은?","제1차 국·공 합작","제국주의 열강과 군벌 타도가 목표였어요."],
+["rep","쑨원 사망(1925) 후 공산당을 탄압해 1차 국공 합작을 깬 인물은?","장제스","군벌 타도에는 성공했어요."],
+["rep","일본이 중국 침략을 본격화한 두 사건은?","만주사변(1931), 중·일 전쟁(1937)",""],
+["rep","1937년 일본에 맞서 국민당과 공산당이 다시 손잡은 일은?","제2차 국·공 합작",""],
+["rep","2차 세계대전 후 국·공 내전에서 승리한 인물과 1949년 세운 나라는?","마오쩌둥, 중화인민공화국","냉전으로 대립이 커졌고, 국민당 정부는 타이완으로 밀려났어요."]
+];
+var ERAS = [
+  {id:"all",yr:"전체",nm:"모든 시대"},
+  {id:"won",yr:"1206",nm:"몽골 제국·원"},
+  {id:"ming",yr:"1368",nm:"명"},
+  {id:"qing",yr:"1616",nm:"청"},
+  {id:"modern",yr:"1840",nm:"근대화 운동"},
+  {id:"rep",yr:"1919",nm:"민족 운동·공산화"}
+];
+var ERA_NAME = {won:"몽골·원",ming:"명",qing:"청",modern:"근대화 운동",rep:"5·4~중화인민공화국"};
+
+/*PURE-START*/
+/* ================= 순수 함수: 입력 정제·검증·학습 로직 (DOM 없음) ================= */
+var ERA_IDS=["won","ming","qing","modern","rep"];
+var LIM={q:120,a:80,n:160,custom:200,ask:200,ans:400,imp:300000,prog:1200};
+var BOX_DAYS=[0,1,3,7,14,30], DAY=86400000;
+
+/* 제어문자·방향 조작 문자(RLO 등)·제로폭 문자를 걸러 내고 길이를 제한한다 */
+function clean(s,max){return String(s==null?"":s).replace(/[\u0000-\u001f\u007f​-‏‪-‮⁦-⁩﻿]/g," ").replace(/\s+/g," ").trim().slice(0,max)}
+function djb(s){var h=5381;s=String(s);for(var i=0;i<s.length;i++)h=((h<<5)+h+s.charCodeAt(i))|0;return (h>>>0).toString(36)}
+/* AI 프롬프트에 넣을 데이터: 태그를 닫는 < > 를 비슷하게 생긴 문자로 바꿔 구조를 깨지 못하게 한다 */
+function fence(s,max){return clean(s,max).replace(/</g,"‹").replace(/>/g,"›")}
+function hasPII(s){
+  s=String(s);
+  if(/[\w.+-]+@[\w-]+\.[a-z]{2,}/i.test(s))return "이메일 주소";
+  if(/(?:^|\D)0\d{1,2}[-.\s]?\d{3,4}[-.\s]?\d{4}(?:\D|$)/.test(s))return "전화번호";
+  if(/\d{6}[-\s]?[1-4]\d{6}/.test(s))return "주민등록번호";
+  if(/https?:\/\/|www\./i.test(s))return "인터넷 주소";
+  return "";
+}
+function norm(s){return String(s).toLowerCase().replace(/[\s·・.,，、'"“”‘’『』「」?!~\-–—()（）]/g,"")}
+function accepted(ans){
+  var out=[norm(ans)],m=String(ans).match(/^([^()]+)\(([^()]+)\)$/);
+  if(m){out.push(norm(m[1]),norm(m[2]))}
+  out.slice().forEach(function(x){if(/^제\d/.test(x))out.push(x.slice(1))});
+  return out;
+}
+function checkTyped(ans,input){var n=norm(input);return n.length>0&&accepted(ans).indexOf(n)>=0}
+function typable(a){return a.length<=14&&!/[,→]/.test(a)&&!/업적/.test(a)}
+function mcOk(a){return a.length<=28}
+
+function sanitizeCustom(arr){
+  if(!Array.isArray(arr))return [];
+  var out=[],seen={};
+  for(var i=0;i<arr.length&&out.length<LIM.custom;i++){
+    var c=arr[i]; if(!c||typeof c!=="object")continue;
+    if(typeof c.q!=="string"||typeof c.a!=="string"||(c.note!=null&&typeof c.note!=="string"))continue;
+    var q=clean(c.q,LIM.q),a=clean(c.a,LIM.a),n=clean(c.note,LIM.n);
+    if(!q||!a||ERA_IDS.indexOf(c.era)<0)continue;
+    if(hasPII(q+" "+a+" "+n))continue;
+    var id=(typeof c.id==="string"&&/^c[a-z0-9]{4,24}$/.test(c.id))?c.id:"c"+djb(c.era+"|"+q+"|"+a);
+    if(seen[id])continue; seen[id]=1;
+    out.push({id:id,era:c.era,q:q,a:a,note:n});
+  }
+  return out;
+}
+function sanitizeProg(o){
+  var out={},n=0;
+  if(!o||typeof o!=="object"||Array.isArray(o))return out;
+  Object.keys(o).forEach(function(k){
+    if(n>=LIM.prog||!/^[bcp][a-z0-9]{3,24}$/.test(k))return;
+    var p=o[k]; if(!p||typeof p!=="object")return;
+    var b=Math.floor(Number(p.b)),t=Math.floor(Number(p.t));
+    if(!(b>=0&&b<=5)||!(t>=0&&t<=4e12))return;
+    out[k]={b:b,t:t};n++;
+  });
+  return out;
+}
+function mergeProg(a,b){var out={};Object.keys(a).forEach(function(k){out[k]=a[k]});Object.keys(b).forEach(function(k){if(!out[k]||b[k].t>out[k].t)out[k]=b[k]});return out}
+function pruneProg(p,exists){var out={};Object.keys(p).forEach(function(k){if(exists(k))out[k]=p[k]});return out}
+
+/* 라이트너 상자: 맞히면 한 단계 위, 틀리면 0단계. 새 카드를 바로 맞히면 2단계부터 시작 */
+function reviewed(p,ok,now){var b=p?p.b:-1;return {b:ok?(b<0?2:Math.min(5,b+1)):0,t:now}}
+function isDue(p,now){return !p||now>=p.t+BOX_DAYS[p.b]*DAY}
+function isWeak(p){return !!p&&p.b===0}
+function isMastered(p){return !!p&&p.b>=3}
+
+function bigrams(s){var t=norm(s),o={};for(var i=0;i<t.length-1;i++)o[t.slice(i,i+2)]=1;return Object.keys(o)}
+function relevant(cards,query,k){
+  var bg=bigrams(query);if(!bg.length)return [];
+  var sc=cards.map(function(c){var t=norm(c.q+c.a+c.note),s=0;bg.forEach(function(b){if(t.indexOf(b)>=0)s++});return {c:c,s:s}}).filter(function(x){return x.s>0});
+  if(!sc.length)return [];
+  sc.sort(function(a,b){return b.s-a.s});
+  var cut=Math.max(1,Math.ceil(sc[0].s/2));
+  return sc.filter(function(x){return x.s>=cut}).slice(0,k).map(function(x){return x.c});
+}
+function pickDistractors(card,cards,rnd,n){
+  var na=norm(card.a);
+  var pool=cards.filter(function(x){return x.id!==card.id&&mcOk(x.a)&&norm(x.a)!==na});
+  var same=pool.filter(function(x){return x.era===card.era});
+  if(same.length>=n*2)pool=same;
+  var sc=pool.map(function(x){return {x:x,s:Math.abs(x.a.length-card.a.length)+rnd()*5}}).sort(function(a,b){return a.s-b.s});
+  var out=[],seen={};
+  for(var i=0;i<sc.length&&out.length<n;i++){
+    var k=norm(sc[i].x.a);
+    if(seen[k]||k.indexOf(na)>=0||na.indexOf(k)>=0)continue;
+    seen[k]=1;out.push(sc[i].x.a);
+  }
+  return out;
+}
+function exportData(custom,prog){return JSON.stringify({app:"cn-review",v:2,custom:custom,prog:prog})}
+function parseImport(text){
+  if(typeof text!=="string"||!text.trim()||text.length>LIM.imp)throw new Error("size");
+  var o=JSON.parse(text);
+  if(!o||typeof o!=="object"||o.app!=="cn-review")throw new Error("format");
+  return {custom:sanitizeCustom(o.custom),prog:sanitizeProg(o.prog)};
+}
+function migrateV1(cr,hr,ids,now){
+  var prog={};
+  if(Array.isArray(hr))hr.forEach(function(k){
+    k=String(k);var m=/^b(\d{1,3})$/.exec(k);
+    if(m){if(ids[+m[1]])prog[ids[+m[1]]]={b:0,t:now}}else if(/^c[a-z0-9]{4,24}$/.test(k)){prog[k]={b:0,t:now}}
+  });
+  return {custom:sanitizeCustom(cr),prog:sanitizeProg(prog)};
+}
+function parseLoose(text){var m=String(text).match(/\{[\s\S]*\}/);if(!m)throw new Error("json");return JSON.parse(m[0])}
+/* ===== 카드 제출·승인 ===== */
+var OWNER_EMAIL="pilseonj@gmail.com";
+var PEND_MAX=30;
+function cardKey(era,q,a){return era+"|"+norm(q)+"|"+norm(a)}
+/* approved.json(선생님이 승인한 카드)을 검증해서 카드 목록으로 바꾼다 */
+function sanitizeApproved(o){
+  var out=[],seen={};
+  if(!o||typeof o!=="object"||!Array.isArray(o.cards))return out;
+  for(var i=0;i<o.cards.length&&out.length<300;i++){
+    var c=o.cards[i];if(!c||typeof c!=="object")continue;
+    if(typeof c.q!=="string"||typeof c.a!=="string"||(c.note!=null&&typeof c.note!=="string"))continue;
+    var q=clean(c.q,LIM.q),a=clean(c.a,LIM.a),n=clean(c.note,LIM.n);
+    if(!q||!a||ERA_IDS.indexOf(c.era)<0||hasPII(q+" "+a+" "+n))continue;
+    var id="p"+djb(cardKey(c.era,q,a));
+    if(seen[id])continue;seen[id]=1;
+    out.push({id:id,era:c.era,q:q,a:a,note:n});
+  }
+  return out;
+}
+function sanitizePending(arr){
+  if(!Array.isArray(arr))return [];
+  var out=[],seen={};
+  for(var i=0;i<arr.length&&out.length<PEND_MAX;i++){
+    var c=arr[i];if(!c||typeof c!=="object")continue;
+    if(typeof c.q!=="string"||typeof c.a!=="string"||(c.note!=null&&typeof c.note!=="string"))continue;
+    var q=clean(c.q,LIM.q),a=clean(c.a,LIM.a),n=clean(c.note,LIM.n);
+    if(!q||!a||ERA_IDS.indexOf(c.era)<0||hasPII(q+" "+a+" "+n))continue;
+    var id=(typeof c.id==="string"&&/^s[a-z0-9]{4,24}$/.test(c.id))?c.id:"s"+djb(cardKey(c.era,q,a));
+    if(seen[id])continue;seen[id]=1;
+    var t=Math.floor(Number(c.t));
+    out.push({id:id,era:c.era,q:q,a:a,note:n,t:(t>0&&t<4e12)?t:0});
+  }
+  return out;
+}
+function submissionText(p,eraName){
+  return "[중국사 카드 제출]\n시대: "+eraName+" ("+p.era+")\n문제: "+p.q+"\n정답: "+p.a+"\n설명: "+(p.note||"(없음)")+"\n제출 코드: "+p.id;
+}
+function mailHref(p,eraName){
+  return "mailto:"+OWNER_EMAIL+"?subject="+encodeURIComponent("[중국사 카드 제출] "+p.q.slice(0,40))+"&body="+encodeURIComponent(submissionText(p,eraName));
+}
+function scopePrompt(scopeName,cards,question){
+  var notes=cards.map(function(c){return "- "+c.q+" → "+c.a+(c.note?" ("+c.note+")":"")}).join("\n");
+  return "너는 중학교 2학년 세계사(중국사) 복습을 돕는 친절한 선생님이야.\n규칙:\n"+
+    "1) 아래 [범위]에 있는 내용을 근거로, 한국어로, 중학생이 이해하기 쉽게 짧게 설명해.\n"+
+    "2) 범위에 없는 내용은 먼저 '내 자료에는 없어요. 교과서나 선생님께 확인해 보세요.'라고 말하고, 아는 내용은 확실하지 않을 수 있다고 알려 줘.\n"+
+    "3) 설명 뒤에 확인 퀴즈를 1문제 내 줘.\n"+
+    "4) 내 이름, 학교, 연락처 같은 개인정보는 묻지 마.\n\n"+
+    "[범위: "+scopeName+"]\n"+notes+"\n\n[내 질문]\n"+(question||"(여기에 궁금한 것을 적어 주세요)");
+}
+/*PURE-END*/
+
+/* ================= 저장소 (이 기기 브라우저에만 저장, 읽을 때마다 검증) ================= */
+function $(id){return document.getElementById(id)}
+function lsGet(k){try{var v=localStorage.getItem(k);return v==null?null:JSON.parse(v)}catch(e){return null}}
+function lsSet(k,v){try{localStorage.setItem(k,JSON.stringify(v));return true}catch(e){flash("이 브라우저에는 기록을 저장할 수 없어요. '내 카드' 탭에서 백업해 두세요.");return false}}
+function lsDel(k){try{localStorage.removeItem(k)}catch(e){}}
+var flashTimer=0;
+function flash(m){var el=$("msg");el.textContent=m;el.hidden=!m;clearTimeout(flashTimer);if(m)flashTimer=setTimeout(function(){el.hidden=true},7000)}
+
+var BASE_IDS=[];(function(){var seen={};BASE.forEach(function(r,i){var id="b"+djb(r[0]+"|"+r[1]);if(seen[id])id+=i;seen[id]=1;BASE_IDS.push(id)})})();
+var custom=[],prog={},PEND_KEY="cn-v2-pending",pending=[],approved=[];
+(function(){
+  var c2=lsGet("cn-v2-custom"),p2=lsGet("cn-v2-prog");
+  if(c2===null&&p2===null){
+    var m=migrateV1(lsGet("cn-custom-v1"),lsGet("cn-hard-v1"),BASE_IDS,Date.now());
+    custom=m.custom;prog=m.prog;
+    if(custom.length)lsSet("cn-v2-custom",custom);
+    if(Object.keys(prog).length)lsSet("cn-v2-prog",prog);
+  }else{custom=sanitizeCustom(c2);prog=sanitizeProg(p2)}
+})();
+
+pending=sanitizePending(lsGet(PEND_KEY));
+
+var CARDS=[],CARD_MAP={};
+function buildCards(){
+  CARDS=BASE.map(function(r,i){return {id:BASE_IDS[i],era:r[0],q:r[1],a:r[2],note:r[3],mine:false}})
+    .concat(approved.map(function(c){return {id:c.id,era:c.era,q:c.q,a:c.a,note:c.note||"",mine:false,appr:true}}))
+    .concat(custom.map(function(c){return {id:c.id,era:c.era,q:c.q,a:c.a,note:c.note||"",mine:true}}));
+  CARD_MAP={};CARDS.forEach(function(c){CARD_MAP[c.id]=c});
+}
+buildCards();
+
+var S={era:"all",tab:"cards",filter:"all",order:[],idx:0,flip:false,quiz:null,focus:null,ai:{q:"",out:""},lastSub:null};
+
+/* ================= 도우미 ================= */
+/* 요소를 만드는 함수. 글자는 항상 텍스트 노드로 넣고, 주소로 쓰일 수 있는 속성과 함수가 아닌 이벤트는 막는다 */
+function h(tag,props){
+  var e=document.createElement(tag);props=props||{};
+  Object.keys(props).forEach(function(k){var v=props[k];
+    if(k==="class")e.className=v;
+    else if(k.slice(0,2)==="on"){if(typeof v==="function")e.addEventListener(k.slice(2),v)}
+    else if(/^(href|src|srcdoc|action|formaction|xlink:href)$/i.test(k))return;
+    else if(v===true)e.setAttribute(k,"");
+    else if(v!==false&&v!=null)e.setAttribute(k,String(v));});
+  for(var i=2;i<arguments.length;i++){[].concat(arguments[i]).forEach(function(k){if(k==null||k===false)return;e.append(k.nodeType?k:document.createTextNode(String(k)))})}
+  return e;
+}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function inEra(c){return S.era==="all"||c.era===S.era}
+function eraCards(){return CARDS.filter(inEra)}
+function passFilter(c,now){var p=prog[c.id];return S.filter==="due"?isDue(p,now):S.filter==="weak"?isWeak(p):true}
+function pool(){var now=Date.now();return eraCards().filter(function(c){return passFilter(c,now)})}
+function resetOrder(sh){var p=pool();if(sh)p=shuffle(p);S.order=p.map(function(c){return c.id});S.idx=0;S.flip=false}
+function applyFocus(){if(!S.focus)return;var el=$(S.focus);S.focus=null;if(el)el.focus()}
+function record(id,ok){prog[id]=reviewed(prog[id],ok,Date.now());lsSet("cn-v2-prog",prog)}
+resetOrder(false);
+
+function filterSelect(id,onchange){
+  var s=h("select",{id:id},[["all","모든 카드"],["due","오늘 공부할 카드"],["weak","헷갈리는 카드"]].map(function(x){return h("option",{value:x[0]},x[1])}));
+  s.value=S.filter;s.addEventListener("change",function(){S.filter=s.value;onchange()});return s;
+}
+function stat(v,l){return h("div",{class:"stat"},h("div",{class:"sv"},String(v)),h("div",{class:"note"},l))}
+function statsBox(){
+  var cs=eraCards(),now=Date.now(),m=0,d=0,w=0;
+  cs.forEach(function(c){var p=prog[c.id];if(isMastered(p))m++;if(isDue(p,now))d++;if(isWeak(p))w++});
+  return h("div",{class:"stats",role:"group","aria-label":"학습 현황"},stat(d,"오늘 공부할 카드"),stat(w,"헷갈리는 카드"),stat(m+" / "+cs.length,"익힌 카드"));
+}
+
+/* ================= 시대·탭 ================= */
+function renderEras(){
+  var nav=$("eras");nav.replaceChildren();
+  ERAS.forEach(function(e){
+    var cs=CARDS.filter(function(c){return e.id==="all"||c.era===e.id});
+    var m=cs.filter(function(c){return isMastered(prog[c.id])}).length;
+    var pct=cs.length?Math.round(m/cs.length*100):0;
+    nav.append(h("button",{class:"era",id:"era-"+e.id,"aria-pressed":S.era===e.id?"true":"false","aria-label":e.nm+", 카드 "+cs.length+"장 중 익힌 카드 "+m+"장",
+      onclick:function(){S.era=e.id;S.quiz=null;resetOrder(false);S.focus="era-"+e.id;renderAll()}},
+      h("span",{class:"yr"},e.yr),h("span",{class:"nm"},e.nm),
+      h("span",{class:"bar","aria-hidden":"true"},h("i",{style:"width:"+pct+"%"})),
+      h("span",{class:"ct"},m+" / "+cs.length+"장 익힘")));
+  });
+}
+var TABS=[["cards","카드"],["quiz","퀴즈"],["ai","AI 선생님"],["mine","내 카드"]];
+function renderTabs(){
+  var t=$("tabs");t.replaceChildren();
+  TABS.forEach(function(x,i){
+    var sel=S.tab===x[0];
+    t.append(h("button",{class:"tab",role:"tab",id:"tab-"+x[0],"aria-selected":sel?"true":"false","aria-controls":"main",tabindex:sel?"0":"-1",
+      onclick:function(){S.tab=x[0];renderTabs();renderPanel()},
+      onkeydown:function(e){var d=e.key==="ArrowRight"?1:e.key==="ArrowLeft"?-1:0;if(!d)return;e.preventDefault();
+        S.tab=TABS[(i+d+TABS.length)%TABS.length][0];S.focus="tab-"+S.tab;renderTabs();renderPanel()}},x[1]));
+  });
+}
+function renderAll(){renderEras();renderTabs();renderPanel()}
+function renderPanel(){
+  var m=$("main");m.setAttribute("aria-labelledby","tab-"+S.tab);
+  m.replaceChildren(S.tab==="cards"?cardsPanel():S.tab==="quiz"?quizPanel():S.tab==="ai"?aiPanel():minePanel());
+  applyFocus();
+}
+
+/* ================= 카드 ================= */
+function cardsPanel(){
+  var box=h("div",{class:"panel"});
+  box.append(statsBox());
+  box.append(h("div",{class:"row"},
+    h("div",{class:"grow"},h("label",{for:"flt"},"보기"),filterSelect("flt",function(){resetOrder(false);renderPanel()})),
+    h("button",{class:"btn",id:"shuf",onclick:function(){resetOrder(true);S.focus="shuf";renderPanel()}},"섞기")));
+  var c=S.order.length?CARD_MAP[S.order[S.idx]]:null;
+  if(S.order.length&&!c){resetOrder(false);c=S.order.length?CARD_MAP[S.order[0]]:null}
+  if(!c){
+    box.append(h("div",{class:"box soft"},S.filter==="weak"?"헷갈리는 카드가 아직 없어요. 카드를 넘기며 '헷갈려요'를 눌러 보세요.":S.filter==="due"?"오늘 공부할 카드를 모두 끝냈어요. 내일 다시 만나요!":"이 시대에는 카드가 없어요."));
+    return box;
+  }
+  var p=prog[c.id];
+  var flip=function(){S.flip=!S.flip;S.focus="card";renderPanel()};
+  var inner=h("div",{class:"card-in",id:"card",role:"button",tabindex:"0",
+    "aria-label":(S.flip?"답: "+c.a+(c.note?". "+c.note:""):"문제: "+c.q)+". 누르면 카드를 뒤집어요",
+    onclick:flip,onkeydown:function(e){if(e.key==="Enter"||e.key===" "){e.preventDefault();flip()}}},
+    h("div",{class:"side"},ERA_NAME[c.era]+(S.flip?" · 답":" · 문제")),
+    c.mine?h("span",{class:"tag"},"내가 만든 카드"):c.appr?h("span",{class:"tag"},"승인된 카드"):null,
+    S.flip?[h("div",{class:"ans"},c.a),c.note?h("div",{class:"note"},c.note):null]:h("div",{class:"q"},c.q),
+    h("div",{class:"note",style:"font-size:12px"},"눌러서 뒤집기"));
+  box.append(h("div",{class:"meta"},h("span",{},(S.idx+1)+" / "+S.order.length),h("span",{},!p?"새 카드":isWeak(p)?"헷갈리는 카드":"기억 단계 "+p.b+" / 5")));
+  box.append(h("div",{class:"card"},inner));
+  var go=function(d,id){S.idx=(S.idx+d+S.order.length)%S.order.length;S.flip=false;S.focus=id;renderPanel()};
+  var mark=function(ok,id){record(c.id,ok);S.idx=(S.idx+1)%S.order.length;S.flip=false;S.focus=id;renderAll()};
+  box.append(h("div",{class:"row",style:"justify-content:space-between;align-items:center"},
+    h("button",{class:"btn",id:"prev",onclick:function(){go(-1,"prev")}},"이전"),
+    h("button",{class:"btn good",id:"know",onclick:function(){mark(true,"know")}},"알아요"),
+    h("button",{class:"btn warn",id:"conf",onclick:function(){mark(false,"conf")}},"헷갈려요"),
+    h("button",{class:"btn",id:"next",onclick:function(){go(1,"next")}},"다음")));
+  box.append(h("div",{class:"note"},"'알아요'를 누르면 복습 간격이 1일 → 3일 → 7일 → 14일로 늘어나고, '헷갈려요'를 누르면 바로 다시 나와요."));
+  return box;
+}
+
+/* ================= 퀴즈 ================= */
+function makeQuestion(c,mode){
+  var type=mode==="type"?(typable(c.a)?"type":"self"):(mcOk(c.a)?"mc":"self");
+  var q={card:c,type:type};
+  if(type==="mc"){q.opts=shuffle(pickDistractors(c,CARDS,Math.random,3).concat([c.a]));if(q.opts.length<2)q.type="self"}
+  return q;
+}
+function startQuiz(cards,mode,n){
+  S.quiz={mode:mode,qs:shuffle(cards).slice(0,n).map(function(c){return makeQuestion(c,mode)}),i:0,score:0,wrong:[],res:null,revealed:false};
+  S.focus="qcard";renderPanel();
+}
+function quizPanel(){
+  var box=h("div",{class:"panel"});
+  var Q=S.quiz;
+  if(!Q){
+    var avail=pool();
+    var sel=h("select",{id:"qn"},[5,10,20].map(function(n){return h("option",{value:n},n+"문제")}));sel.value="10";
+    var md=h("select",{id:"qm"},[["mc","객관식 (보기에서 고르기)"],["type","주관식 (직접 쓰기)"]].map(function(x){return h("option",{value:x[0]},x[1])}));
+    box.append(statsBox());
+    box.append(h("div",{class:"box soft"},"선택한 시대의 카드 "+eraCards().length+"장에서 문제를 내요. 틀린 문제는 '헷갈리는 카드'로 돌아가고, 맞힌 문제는 복습 간격이 늘어나요. 답이 긴 카드는 '정답 보기' 후 스스로 채점해요."));
+    box.append(h("div",{class:"row"},
+      h("div",{class:"grow"},h("label",{for:"flt"},"문제로 쓸 카드"),filterSelect("flt",function(){renderPanel()})),
+      h("div",{class:"grow"},h("label",{for:"qm"},"방식"),md),
+      h("div",{style:"min-width:110px"},h("label",{for:"qn"},"문제 수"),sel)));
+    box.append(h("div",{class:"row"},h("button",{class:"btn primary",id:"qstart",disabled:avail.length<2,onclick:function(){
+      startQuiz(avail,md.value,Math.min(parseInt(sel.value,10)||10,avail.length))}},"퀴즈 시작")));
+    if(avail.length<2)box.append(h("div",{class:"note"},"문제를 내려면 선택한 조건의 카드가 2장 이상 필요해요."));
+    return box;
+  }
+  if(Q.i>=Q.qs.length){
+    box.append(h("div",{class:"box",id:"qcard",tabindex:"-1"},h("div",{class:"note"},"결과"),h("div",{class:"big"},Q.score+" / "+Q.qs.length)));
+    if(Q.wrong.length){
+      box.append(h("h2",{},"다시 볼 카드"));
+      Q.wrong.forEach(function(c){box.append(h("div",{class:"box"},h("div",{class:"q",style:"font-size:16px"},c.q),h("div",{class:"ans",style:"font-size:20px"},c.a),c.note?h("div",{class:"note"},c.note):null))});
+    }else box.append(h("div",{class:"box soft"},"모두 맞혔어요!"));
+    var wrongCards=Q.wrong.slice(),mode=Q.mode;
+    box.append(h("div",{class:"row"},
+      h("button",{class:"btn primary",id:"qagain",onclick:function(){S.quiz=null;S.focus="qstart";renderPanel()}},"새 퀴즈"),
+      wrongCards.length?h("button",{class:"btn",onclick:function(){startQuiz(wrongCards,mode,wrongCards.length)}},"틀린 카드만 다시 풀기"):null));
+    return box;
+  }
+  var cur=Q.qs[Q.i],c=cur.card,res=Q.res;
+  box.append(h("div",{class:"meta"},h("span",{},(Q.i+1)+" / "+Q.qs.length),h("span",{},"맞힌 개수 "+Q.score)));
+  box.append(h("div",{class:"card"},h("div",{class:"card-in static",id:"qcard",tabindex:"-1"},h("div",{class:"side"},ERA_NAME[c.era]),h("div",{class:"q"},c.q))));
+  function finish(ok,picked){
+    Q.res={ok:ok,picked:picked,prev:prog[c.id]};
+    if(ok)Q.score++;else Q.wrong.push(c);
+    record(c.id,ok);S.focus="qnext";renderAll();
+  }
+  if(cur.type==="mc"){
+    var opts=h("div",{class:"opts"});
+    cur.opts.forEach(function(o){
+      var cls="opt";if(res){if(o===c.a)cls+=" right";else if(o===res.picked)cls+=" wrong"}
+      opts.append(h("button",{class:cls,disabled:!!res,onclick:function(){finish(o===c.a,o)}},o));
+    });
+    box.append(opts);
+  }else if(cur.type==="type"&&!res){
+    var inp=h("input",{type:"text",id:"tin",maxlength:String(LIM.a),autocomplete:"off","aria-label":"정답 입력"});
+    box.append(h("form",{onsubmit:function(e){e.preventDefault();var v=clean(inp.value,LIM.a);if(!v)return;finish(checkTyped(c.a,v),v)}},
+      h("div",{},h("label",{for:"tin"},"정답을 직접 써 보세요 (띄어쓰기는 상관없어요)"),inp),
+      h("div",{class:"row"},h("button",{class:"btn primary",type:"submit"},"확인"))));
+    S.focus=S.focus||"tin";
+  }else if(cur.type==="self"&&!res){
+    if(!Q.revealed){
+      box.append(h("div",{class:"row"},h("button",{class:"btn primary",id:"reveal",onclick:function(){Q.revealed=true;S.focus="knowit";renderPanel()}},"정답 보기")));
+    }else{
+      box.append(h("div",{class:"box"},h("div",{class:"ans",style:"font-size:20px"},c.a),c.note?h("div",{class:"note"},c.note):null));
+      box.append(h("div",{class:"row"},
+        h("button",{class:"btn good",id:"knowit",onclick:function(){finish(true,null)}},"맞혔어요"),
+        h("button",{class:"btn warn",onclick:function(){finish(false,null)}},"틀렸어요")));
+    }
+  }
+  if(res){
+    var ok=res.ok;
+    var extra=null;
+    if(cur.type==="type"&&!ok){
+      extra=h("div",{class:"row"},h("span",{class:"note"},"내가 쓴 답: "+res.picked),h("button",{class:"btn",onclick:function(){
+        Q.score++;Q.wrong.pop();
+        if(res.prev)prog[c.id]=res.prev;else delete prog[c.id];
+        record(c.id,true);res.ok=true;S.focus="qnext";renderAll();
+      }},"내 답도 맞아요"));
+    }
+    box.append(h("div",{class:"box "+(ok?"":"soft"),role:"status"},
+      h("strong",{style:"color:"+(ok?"var(--good)":"var(--bad)")},ok?"맞아요. ":"정답은 '"+c.a+"'예요. "),c.note||"",extra));
+    box.append(h("div",{class:"row"},h("button",{class:"btn primary",id:"qnext",onclick:function(){
+      Q.i++;Q.res=null;Q.revealed=false;S.focus=Q.i<Q.qs.length?"qcard":"qagain";renderPanel()}},Q.i+1<Q.qs.length?"다음 문제":"결과 보기")));
+  }
+  return box;
+}
+
+/* ================= AI 선생님 (외부 AI 서비스로 이동) ================= */
+/* 주소는 이 목록에 적힌 것만 쓴다. 사용자 입력은 주소로 쓰지 않는다 */
+var AI_SITES=[
+  {name:"ChatGPT",url:"https://www.chatgpt.com",host:"chatgpt.com"},
+  {name:"제미나이",url:"https://gemini.google.com",host:"gemini.google.com"},
+  {name:"클로드",url:"https://claude.ai",host:"claude.ai"},
+  {name:"그록",url:"https://grok.com",host:"grok.com"}
+];
+function extLink(cls,href,label,children){
+  var a=document.createElement("a");
+  a.setAttribute("href",href);a.setAttribute("target","_blank");a.setAttribute("rel","noopener noreferrer");
+  a.className=cls;if(label)a.setAttribute("aria-label",label);
+  [].concat(children).forEach(function(k){a.append(k.nodeType?k:document.createTextNode(String(k)))});
+  return a;
+}
+function copyText(text,ta,msgEl){
+  var fallback=function(){ta.hidden=false;ta.value=text;ta.focus();ta.select();msgEl.textContent="글을 선택했어요. 직접 복사해 주세요."};
+  try{navigator.clipboard.writeText(text).then(function(){ta.hidden=false;ta.value=text;msgEl.textContent="복사했어요."},fallback)}catch(e){fallback()}
+}
+function aiPanel(){
+  var box=h("div",{class:"panel"});
+  box.append(h("div",{class:"box soft"},"AI 선생님은 아래 서비스에서 만나요. 버튼을 누르면 새 탭이 열려요. 이 노트의 범위 안에서 답하게 하려면 아래 '범위 안내문'을 복사해서 붙여 넣으세요."));
+  box.append(h("div",{class:"linkgrid"},AI_SITES.map(function(s){
+    return extLink("btn primary linkbtn",s.url,s.name+" 새 탭에서 열기",[h("span",{class:"ln"},s.name),h("span",{class:"lh"},s.host+" ↗")]);
+  })));
+  var scopeName=S.era==="all"?"몽골 제국에서 중화인민공화국까지 (모든 시대)":ERA_NAME[S.era];
+  var cs=eraCards();
+  var q=h("input",{type:"text",id:"aiq",maxlength:String(LIM.ask),placeholder:"예: 양무운동과 변법자강 운동은 뭐가 달라?",autocomplete:"off"});q.value=S.ai.q;
+  q.addEventListener("input",function(){S.ai.q=q.value});
+  var out=h("textarea",{id:"aiout",readonly:true,rows:"8",hidden:!S.ai.out,"aria-label":"만들어진 범위 안내문",spellcheck:"false"});out.value=S.ai.out;
+  var msg=h("div",{class:"note",role:"status"});
+  box.append(h("h2",{},"범위 안내문 만들기"));
+  box.append(h("div",{class:"box"},
+    h("div",{class:"note"},"범위: "+scopeName+" · 카드 "+cs.length+"장 (위에서 시대를 고르면 범위가 바뀌어요)"),
+    h("div",{style:"height:10px"}),
+    h("div",{},h("label",{for:"aiq"},"내 질문 (선택)"),q),
+    h("div",{class:"row",style:"margin-top:10px"},
+      h("button",{class:"btn primary",type:"button",id:"aibuild",onclick:function(){
+        var v=clean(q.value,LIM.ask),pii=hasPII(v);
+        if(pii){msg.textContent="질문에 "+pii+"가 들어 있어요. 개인정보는 지우고 다시 눌러 주세요.";return}
+        S.ai.out=scopePrompt(scopeName,cs,v);copyText(S.ai.out,out,msg);
+      }},"안내문 만들기·복사"),msg),
+    h("div",{style:"height:10px"}),out));
+  box.append(h("div",{class:"note"},"만든 안내문을 AI 서비스의 입력창에 붙여 넣고 보내세요. 서비스마다 이용할 수 있는 나이와 약관이 달라요. 선생님이 안내한 서비스만 쓰고, 이름·학교·전화번호 같은 개인정보는 입력하지 마세요. AI 답변은 틀릴 수 있으니 교과서와 활동지로 꼭 확인하세요."));
+  return box;
+}
+
+/* ================= 내 카드·백업·초기화 ================= */
+function newId(){return "c"+Date.now().toString(36)+Math.random().toString(36).slice(2,6)}
+function persistCustom(){lsSet("cn-v2-custom",custom);buildCards();prog=pruneProg(prog,function(k){return !!CARD_MAP[k]||k.charAt(0)==="p"});lsSet("cn-v2-prog",prog);resetOrder(false);S.quiz=null}
+function savePending(){lsSet(PEND_KEY,pending)}
+function minePanel(){
+  var box=h("div",{class:"panel"});
+  var era=h("select",{id:"f-era"},Object.keys(ERA_NAME).map(function(k){return h("option",{value:k},ERA_NAME[k])}));
+  if(ERA_NAME[S.era])era.value=S.era;
+  var q=h("input",{type:"text",id:"f-q",maxlength:String(LIM.q),placeholder:"예: 역참제는 무엇일까?"});
+  var a=h("input",{type:"text",id:"f-a",maxlength:String(LIM.a),placeholder:"짧은 정답"});
+  var n=h("input",{type:"text",id:"f-n",maxlength:String(LIM.n),placeholder:"기억에 도움이 되는 설명 (선택)"});
+  var msg=h("div",{class:"note",role:"status"});
+  var form=h("form",{onsubmit:function(e){
+    e.preventDefault();
+    var cq=clean(q.value,LIM.q),ca=clean(a.value,LIM.a),cn=clean(n.value,LIM.n);
+    if(!cq||!ca){msg.textContent="문제와 정답을 모두 적어 주세요.";return}
+    var pii=hasPII(cq+" "+ca+" "+cn);if(pii){msg.textContent="카드에 "+pii+"가 들어 있어요. 개인정보는 지우고 다시 눌러 주세요.";return}
+    var key=cardKey(era.value,cq,ca);
+    if(CARDS.some(function(c){return cardKey(c.era,c.q,c.a)===key})||pending.some(function(c){return cardKey(c.era,c.q,c.a)===key})){msg.textContent="이미 있는 카드예요.";return}
+    if(pending.length>=PEND_MAX){msg.textContent="검토 대기 카드는 "+PEND_MAX+"장까지 담을 수 있어요. 보낸 카드는 지워 주세요.";return}
+    var p={id:"s"+Date.now().toString(36)+Math.random().toString(36).slice(2,6),era:era.value,q:cq,a:ca,note:cn,t:Date.now()};
+    pending.unshift(p);savePending();S.lastSub=p.id;
+    flash("카드를 '검토 대기'에 담았어요. 아래에서 메일을 보내야 선생님께 전달돼요.");S.focus="sub-"+p.id;renderAll();
+  }},
+    h("div",{},h("label",{for:"f-era"},"시대"),era),
+    h("div",{},h("label",{for:"f-q"},"문제"),q),
+    h("div",{},h("label",{for:"f-a"},"정답"),a),
+    h("div",{},h("label",{for:"f-n"},"설명"),n),
+    h("div",{class:"row"},h("button",{class:"btn primary",type:"submit"},"카드 제출"),msg));
+  box.append(h("h2",{},"내 카드 제안하기"));
+  box.append(h("div",{class:"box soft"},"카드를 만들어 제출하면 선생님이 검토해요. 승인된 카드는 모두의 카드에 들어가요. 승인되기 전에는 이 기기의 '검토 대기' 목록에만 있어요."));
+  box.append(h("div",{class:"box"},form));
+
+  if(pending.length){
+    box.append(h("h2",{},"검토 대기 카드 ("+pending.length+")"));
+    box.append(h("div",{class:"box soft"},h("div",{},"메일 앱이 열리면 '보내기'까지 눌러야 선생님께 전달돼요. 열리지 않으면 '내용 복사'를 눌러 메일에 붙여 넣고 아래 주소로 보내세요."),
+      h("div",{class:"mono",style:"margin-top:6px;user-select:all"},OWNER_EMAIL)));
+    pending.forEach(function(p){
+      var ta=h("textarea",{readonly:true,rows:"6",hidden:true,"aria-label":"제출 내용",spellcheck:"false"});
+      var cm=h("span",{class:"note",role:"status"});
+      var en=ERA_NAME[p.era];
+      box.append(h("div",{class:"box",id:"sub-"+p.id,tabindex:"-1"},
+        h("div",{class:"side"},en+" · 검토 대기"+(S.lastSub===p.id?" · 방금 담았어요":"")),
+        h("div",{class:"q",style:"font-size:16px"},p.q),h("div",{class:"ans",style:"font-size:20px"},p.a),p.note?h("div",{class:"note"},p.note):null,
+        h("div",{class:"row",style:"margin-top:10px"},
+          extLink("btn primary",mailHref(p,en),"메일 보내기: "+p.q,["메일 보내기"]),
+          h("button",{class:"btn",type:"button",onclick:function(){copyText(submissionText(p,en),ta,cm)}},"내용 복사"),
+          h("button",{class:"btn warn",type:"button","aria-label":"제출 목록에서 삭제: "+p.q,onclick:function(){
+            pending=pending.filter(function(x){return x.id!==p.id});savePending();renderAll()}},"삭제"),cm),
+        h("div",{style:"height:8px"}),ta));
+    });
+  }
+  if(approved.length)box.append(h("div",{class:"note"},"승인된 카드 "+approved.length+"장이 카드 탭에 들어 있어요."));
+  if(custom.length){
+    box.append(h("div",{class:"box"},h("div",{class:"note"},"이 기기에만 있는 내 카드 "+custom.length+"장 (예전에 만든 카드)"),
+      custom.map(function(c){return h("div",{class:"mine"},h("span",{},c.q+" → "+c.a),
+        h("button",{class:"btn warn",type:"button","aria-label":"카드 삭제: "+c.q,onclick:function(){
+          custom=custom.filter(function(x){return x.id!==c.id});persistCustom();renderAll()}},"삭제"))})));
+  }
+
+  var bk=h("textarea",{id:"bk",placeholder:"백업 글을 여기에 붙여 넣고 '가져오기'를 눌러요.",spellcheck:"false"});
+  var bmsg=h("div",{class:"note",role:"status"});
+  box.append(h("h2",{},"백업과 복원"));
+  box.append(h("div",{class:"box"},
+    h("div",{class:"note"},"내 카드와 학습 기록은 이 기기의 이 브라우저에만 저장돼요. 브라우저 데이터를 지우면 사라지니, 다른 기기로 옮기거나 보관하려면 내보낸 글을 복사해 두세요."),
+    h("div",{style:"height:10px"}),bk,
+    h("div",{class:"row",style:"margin-top:10px"},
+      h("button",{class:"btn",type:"button",onclick:function(){
+        bk.value=exportData(custom,prog);bk.select();
+        try{navigator.clipboard.writeText(bk.value).then(function(){bmsg.textContent="복사했어요."},function(){bmsg.textContent="글을 선택했어요. 직접 복사해 주세요."})}catch(e){bmsg.textContent="글을 선택했어요. 직접 복사해 주세요."}
+      }},"내보내기"),
+      h("button",{class:"btn primary",type:"button",onclick:function(){
+        try{
+          var m=parseImport(bk.value),have={},added=0;
+          custom.forEach(function(c){have[c.era+"|"+c.q]=1});
+          m.custom.forEach(function(c){
+            if(custom.length>=LIM.custom||have[c.era+"|"+c.q])return;
+            if(custom.some(function(x){return x.id===c.id}))c.id=newId();
+            custom.push(c);have[c.era+"|"+c.q]=1;added++;
+          });
+          prog=mergeProg(prog,m.prog);persistCustom();
+          flash("가져왔어요. 새 카드 "+added+"장을 더했어요.");renderAll();
+        }catch(e){bmsg.textContent="가져올 수 없는 글이에요. '내보내기'로 만든 글을 그대로 붙여 넣어 주세요."}
+      }},"가져오기"),
+      bmsg)));
+
+  var armed=false,timer=0;
+  var reset=h("button",{class:"btn warn",type:"button",id:"reset",onclick:function(){
+    if(!armed){armed=true;reset.textContent="정말 지울까요? 한 번 더 누르세요";timer=setTimeout(function(){armed=false;reset.textContent="모든 기록 지우기"},5000);return}
+    clearTimeout(timer);
+    ["cn-v2-custom","cn-v2-prog","cn-v2-pending","cn-custom-v1","cn-hard-v1"].forEach(lsDel);
+    custom=[];prog={};pending=[];buildCards();resetOrder(false);S.quiz=null;S.ai={q:"",out:""};S.lastSub=null;
+    flash("내 카드, 제출 목록, 학습 기록을 모두 지웠어요.");renderAll();
+  }},"모든 기록 지우기");
+  box.append(h("h2",{},"공용 컴퓨터라면"));
+  box.append(h("div",{class:"box"},h("div",{class:"note"},"학교나 도서관 컴퓨터에서는 다 쓴 뒤에 기록을 지워 주세요. 지운 기록은 되돌릴 수 없어요."),h("div",{class:"row",style:"margin-top:10px"},reset)));
+  return box;
+}
+
+/* ================= 시작 ================= */
+/* approved.json: 선생님이 승인한 카드. 없거나 형식이 틀리면 조용히 무시한다 */
+function loadApproved(){
+  try{
+    fetch("approved.json",{cache:"no-store"}).then(function(r){if(!r.ok)throw new Error("http");return r.text()}).then(function(t){
+      if(t.length>200000)throw new Error("size");
+      var list=sanitizeApproved(JSON.parse(t));
+      if(!list.length)return;
+      approved=list;
+      var keys={};approved.forEach(function(c){keys[cardKey(c.era,c.q,c.a)]=1});
+      var before=pending.length;
+      pending=pending.filter(function(p){return !keys[cardKey(p.era,p.q,p.a)]});
+      if(pending.length!==before){savePending();flash("제출한 카드 "+(before-pending.length)+"장이 승인되어 카드에 들어갔어요.")}
+      buildCards();resetOrder(false);renderAll();
+    }).catch(function(){});
+  }catch(e){}
+}
+renderAll();
+loadApproved();
+})();
+</script>
+</body>
+</html>
